@@ -1,0 +1,106 @@
+body {
+    background-color: black;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#map-container {
+    display: flex;
+    position: relative;
+}
+
+#map {
+    display: block;
+    max-height: 100vh;
+    height: auto;
+}
+
+.placeholder {
+    background-color: grey;
+    opacity: 0.5;
+    height: 100vh;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#left-rect {
+    align-items: flex-start;
+    padding: 10px;
+}
+
+#team-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.team-member {
+    background-color: #555;
+    border-radius: 8px;
+    margin: 5px 0;
+    padding: 10px;
+    width: calc(100% - 20px);
+    display: flex;
+    align-items: center;
+}
+
+.team-member input {
+    background: none;
+    border: none;
+    color: white;
+    width: 70%;
+    text-align: center;
+    font-size: 1em;
+    outline: none;
+    margin-right: 5px;
+}
+
+.action-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 5px;
+}
+
+.action-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.draggable-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+/* Team member object */
+.draggable {
+    position: absolute;
+    background-color: transparent;
+    border:none;
+    border-radius: 8px;
+    padding: 5px;
+    text-align: center;
+    cursor: move;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+}
+
+.draggable img {
+    display: block;
+    margin: 0 auto 5px auto;
+    width: 30px;
+    height: 30px;
+}
