@@ -48,22 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         draggableContainer.style.display = 'block'; // Ensure visible if updated
 
-        // --- Centering Logic (Optional - Add AFTER innerHTML update) ---
-        // If you want to spawn exactly in the center:
-        // Need a slight delay or reliable way to get dimensions after rendering
-        // requestAnimationFrame(() => { // Use rAF to wait for rendering
-             // const mapWidth = mapContainer.offsetWidth;
-             // const mapHeight = mapContainer.offsetHeight;
-             // const elemWidth = draggableContainer.offsetWidth;
-             // const elemHeight = draggableContainer.offsetHeight;
-
-             // if (isNew) { // Only center if it's newly created
-                // draggableContainer.style.top = (mapHeight / 2) - (elemHeight / 2) + 'px';
-                // draggableContainer.style.left = (mapWidth / 2) - (elemWidth / 2) + 'px';
-             // }
-         // });
-        // --- End Centering Logic ---
-
 
         const draggableElement = draggableContainer.querySelector('.draggable');
         // Ensure the inner element doesn't interfere with container positioning initially
@@ -81,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onpointerup = closeDragElement;
+            document.onpointerup = closeDragElement; // Use onpointer instead of onmouse, for compatibility
             document.onpointermove = elementDrag;
         }
 
@@ -89,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e = e || window.event;
             e.preventDefault();
     
-            // Calculate the new cursor position:
+            // Calculate new cursor position:
             pos1 = pos3 - e.clientX; // How much the mouse moved horizontally
             pos2 = pos4 - e.clientY; // How much the mouse moved vertically
             pos3 = e.clientX;        // Update mouse X
