@@ -2,11 +2,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const mapContainer = document.getElementById('map-container');
     const buttons = document.querySelectorAll('.action-btn');
 
+    const mapRect = mapContainer.getBoundingClientRect();
+    const draggableArea = {
+        top: mapRect.top,
+        left: mapRect.left,
+        right: mapRect.right,
+        bottom: mapRect.bottom
+    };
+
+
     buttons.forEach(button => {
         button.addEventListener('click', (event) => {
-            const memberName = event.currentTarget.parentNode.querySelector('input').value;
+            const memberLi = event.currentTarget.closest('.team-member'); // Get parent li
+            const memberId = memberLi.getAttribute('data-member-id'); // Get the ID
+            const memberName = memberLi.querySelector('input').value || `Member ${memberId}`; // Use ID if name is empty
             const iconSrc = event.currentTarget.getAttribute('data-icon');
-            const memberId = event.currentTarget.parentNode.querySelector('input').placeholder;
 
             spawnOrUpdateDraggable(memberId, memberName, iconSrc);
         });
@@ -14,67 +24,115 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function spawnOrUpdateDraggable(memberId, memberName, iconSrc) {
         let draggableContainer = document.getElementById(`draggable-container-${memberId}`);
-        
+        let isNew = false;
+
         if (!draggableContainer) {
+            isNew = true;
             draggableContainer = document.createElement('div');
             draggableContainer.id = `draggable-container-${memberId}`;
             draggableContainer.className = 'draggable-container';
+            // Set initial position styles *before* adding to DOM if possible
+            draggableContainer.style.position = 'absolute'; // Ensure it's absolute
+            draggableContainer.style.display = 'block'; // Make it visible immediately
+            // Set a default starting position (e.g., top-left or center)
+            draggableContainer.style.top = '10px'; // Example: Start near top-left
+            draggableContainer.style.left = '10px'; // Example: Start near top-left
             mapContainer.appendChild(draggableContainer);
         }
 
         draggableContainer.innerHTML = `
             <div class="draggable">
-                <img src="${iconSrc}" alt="Icon">
-                <span>${memberName}</span>
+                <img src="${iconSrc}" alt="Icon for ${memberName || memberId}">
+                <span>${memberName || memberId}</span>
             </div>
         `;
-        draggableContainer.style.display = 'block';
-        draggableContainer.style.top = '50%';
-        draggableContainer.style.left = '50%';
+        draggableContainer.style.display = 'block'; // Ensure visible if updated
+
+        // --- Centering Logic (Optional - Add AFTER innerHTML update) ---
+        // If you want to spawn exactly in the center:
+        // Need a slight delay or reliable way to get dimensions after rendering
+        // requestAnimationFrame(() => { // Use rAF to wait for rendering
+             // const mapWidth = mapContainer.offsetWidth;
+             // const mapHeight = mapContainer.offsetHeight;
+             // const elemWidth = draggableContainer.offsetWidth;
+             // const elemHeight = draggableContainer.offsetHeight;
+
+             // if (isNew) { // Only center if it's newly created
+                // draggableContainer.style.top = (mapHeight / 2) - (elemHeight / 2) + 'px';
+                // draggableContainer.style.left = (mapWidth / 2) - (elemWidth / 2) + 'px';
+             // }
+         // });
+        // --- End Centering Logic ---
+
 
         const draggableElement = draggableContainer.querySelector('.draggable');
+        // Ensure the inner element doesn't interfere with container positioning initially
+        draggableElement.style.position = 'relative'; // Make inner draggable relative to container
+
         makeElementDraggable(draggableElement, draggableContainer);
     }
 
     function makeElementDraggable(draggableElement, containerElement) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        draggableElement.onmousedown = dragMouseDown;
+        draggableElement.onpointerdown = dragMouseDown;
 
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
+            document.onpointerup = closeDragElement;
+            document.onpointermove = elementDrag;
         }
 
         function elementDrag(e) {
             e = e || window.event;
             e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-
-            const mapRect = mapContainer.getBoundingClientRect();
-            const elemRect = containerElement.getBoundingClientRect();
-
-            let newTop = elemRect.top - pos2;
-            let newLeft = elemRect.left - pos1;
-
-            if (newTop < mapRect.top) newTop = mapRect.top;
-            if (newLeft < mapRect.left) newLeft = mapRect.left;
-            if (newTop + elemRect.height > mapRect.bottom) newTop = mapRect.bottom - elemRect.height;
-            if (newLeft + elemRect.width > mapRect.right) newLeft = mapRect.right - elemRect.width;
-            
-            containerElement.style.top = (newTop - mapRect.top) + 'px';
-            containerElement.style.left = (newLeft - mapRect.left) + 'px';
+    
+            // Calculate the new cursor position:
+            pos1 = pos3 - e.clientX; // How much the mouse moved horizontally
+            pos2 = pos4 - e.clientY; // How much the mouse moved vertically
+            pos3 = e.clientX;        // Update mouse X
+            pos4 = e.clientY;        // Update mouse Y
+    
+            // Calculate new position relative to map container
+            let newTop = containerElement.offsetTop - pos2;
+            let newLeft = containerElement.offsetLeft - pos1;
+    
+            // Get map container dimensions (inside the function for accuracy)
+            const mapWidth = mapContainer.offsetWidth;
+            const mapHeight = mapContainer.offsetHeight;
+    
+            // Get draggable element dimensions
+            const elemWidth = containerElement.offsetWidth;
+            const elemHeight = containerElement.offsetHeight;
+    
+            // Constrain the element within the map container boundaries
+            // Top boundary
+            if (newTop < 0) {
+                newTop = 0;
+            }
+            // Left boundary
+            if (newLeft < 0) {
+                newLeft = 0;
+            }
+            // Bottom boundary
+            if (newTop + elemHeight > mapHeight) {
+                newTop = mapHeight - elemHeight;
+            }
+            // Right boundary
+            if (newLeft + elemWidth > mapWidth) {
+                newLeft = mapWidth - elemWidth;
+            }
+    
+            // Apply the constrained position (relative to mapContainer)
+            containerElement.style.top = newTop + 'px';
+            containerElement.style.left = newLeft + 'px';
         }
 
         function closeDragElement() {
-            document.onmouseup = null;
-            document.onmousemove = null;
+            document.onpointerup = null;
+            document.onpointermove = null;
         }
     }
 });
